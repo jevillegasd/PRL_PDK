@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klayout-macro>
+ <description/>
+ <version/>
+ <category>pymacros</category>
+ <prolog/>
+ <epilog/>
+ <doc/>
+ <autorun>true</autorun>
+ <autorun-early>false</autorun-early>
+ <shortcut/>
+ <show-in-menu>false</show-in-menu>
+ <group-name/>
+ <menu-path/>
+ <interpreter>python</interpreter>
+ <dsl-interpreter-name/>
+ <text>"""
+PRL Library compatible with SiEPIC tools. 
+Notice: Information in this file is confidential.
+Based on work of the SiEPIC project
+
+Description:
+This Python file implements a PCell called "Ring", that generates a Ring resonator with:
+   - Add Port and optional Drop Ports.
+   - Optional Heaters and two connection configurations.
+   - Variable waveguide widths (the ring thickness is independent of the bus waveguide).
+   
+(C) NYUAD 2023
+
+Version history:  
+  Juan Villegas 2022/08/17: Initial Release
+  Juan Villegas 2023/01/23: Metalization updates
+"""
+
+
+import pya
+import os
+import pathlib
+import sys
+
+
+# import tii_tools
+
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+if dir_path not in sys.path:
+    sys.path.append(dir_path)
+    
+        
+class PRLPDK_pcell_library(pya.Library):
+
+  def __init__(self):
+    self.description = "v0.1, Parametric Cells"
+    tech_name = 'PRL_PDK'
+    library = tech_name +''
+    self.technology=tech_name
+    
+    folder = 'pcells_beta'
+    print("Initializing '%s' Library." % library)
+    
+    TECHNOLOGY = get_technology_by_name(tech_name, False) 
+    
+    # Register all other parametric cells in the folder pcells_beta
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),folder)
+    files = [f for f in os.listdir(path) if '.py' in pathlib.Path(f).suffixes  and '__init__' not in f]
+        
+    cell_lib = __import__(folder)
+    
+    import importlib
+    importlib.invalidate_caches()
+    pcells_=[]
+    
+    for f in files:
+        module = folder+ '.%s' % f.replace('.py','')  ### folder name ###
+        print(' - found module: %s' % module)
+        m = importlib.import_module(module) 
+        print(m)
+        pcells_.append(importlib.reload(m))
+    
+    for m in pcells_:
+        try:
+          class_name = m.__name__.replace(folder+'.','') # Class name to call in the module (needs to match the file name)
+          class_call = 'cell_lib.'+class_name+'.'+class_name+'()'
+          if (class_name != 'Waveguide'):
+            print(' - register_pcell %s, %s' % (class_call,class_name))
+            self.layout().register_pcell(class_name, eval(class_call))
+          else:
+            print(' - NOT registered pcell %s, %s' % (class_call,class_name))
+        except:
+          print('   Error: Could not register %s' % (class_name))
+    
+    self.register(library)
+    return
+
+ 
+
+PRLPDK_pcell_library()</text>
+</klayout-macro>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klayout-macro>
+ <description/>
+ <version/>
+ <category>pymacros</category>
+ <prolog/>
+ <epilog/>
+ <doc/>
+ <autorun>true</autorun>
+ <autorun-early>false</autorun-early>
+ <shortcut/>
+ <show-in-menu>false</show-in-menu>
+ <group-name/>
+ <menu-path/>
+ <interpreter>python</interpreter>
+ <dsl-interpreter-name/>
+ <text>"""
+Library compatible with SiEPIC tools. 
+Notice: Information in this file is confidential.
+Based on work of the SiEPIC project
+
+Description:
+This Python file implements a library called "Ligentec", and defines some super classes not directly available in SiEPIC tools.
+(C) NYUAD 2023
+
+Version history:  
+  Juan Villegas 2023/02/28: Initial Release
+"""
+
+import pya
+from pya import *
+from SiEPIC.utils import get_technology_by_name
+import os
+import pathlib
+import sys
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+if dir_path not in sys.path:
+    sys.path.append(dir_path)
+    
+
+class PRLPDK_EBeam_fixedcells(pya.Library):
+  def __init__(self):
+    self.description = "v1.0, PRL Fixed Cells"
+    tech_name = 'PRL_PDK'
+    library = tech_name +' - Fixed'
+    self.technology=tech_name
+    
+    print("Initializing '%s' Library." % library)
+
+    self.path = os.path.dirname(os.path.realpath(__file__))
+
+    # Import all the GDS files from the tech folder
+    import fnmatch
+    dir_path = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../gds/fixed/prl"))
+    
+    print('  library path: %s' % dir_path)
+    search_str = '*.[Oo][Aa][Ss]' # OAS
+    for root, dirnames, filenames in os.walk(dir_path, followlinks=True):
+        for filename in fnmatch.filter(filenames, search_str):
+            file1=os.path.join(root, filename)
+            print(" - reading %s" % file1 )
+            self.layout().read(file1)
+    search_str = '*.[Gg][Dd][Ss]' # GDS
+    for root, dirnames, filenames in os.walk(dir_path, followlinks=True):
+        for filename in fnmatch.filter(filenames, search_str):
+            file1=os.path.join(root, filename)
+            print(" - reading %s" % file1 )
+            self.layout().read(file1)
+    
+    self.register(library)
+    
+class SiEPIC_EBeam_fixedcells(pya.Library):
+  def __init__(self):
+    self.description = "v1.0, EBeam Fixed Cells"
+    tech_name = 'PRL_PDK'
+    library = 'EBeam' +' - Fixed'
+    self.technology=tech_name
+    
+    print("Initializing '%s' Library." % library)
+
+    self.path = os.path.dirname(os.path.realpath(__file__))
+
+    # Import all the GDS files from the tech folder
+    import fnmatch
+    dir_path = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../gds/fixed/ebeam"))
+    
+    print('  library path: %s' % dir_path)
+    search_str = '*.[Oo][Aa][Ss]' # OAS
+    for root, dirnames, filenames in os.walk(dir_path, followlinks=True):
+        for filename in fnmatch.filter(filenames, search_str):
+            file1=os.path.join(root, filename)
+            print(" - reading %s" % file1 )
+            self.layout().read(file1)
+    search_str = '*.[Gg][Dd][Ss]' # GDS
+    for root, dirnames, filenames in os.walk(dir_path, followlinks=True):
+        for filename in fnmatch.filter(filenames, search_str):
+            file1=os.path.join(root, filename)
+            print(" - reading %s" % file1 )
+            self.layout().read(file1)
+    
+    self.register(library)
+    
+PRLPDK_EBeam_fixedcells()
+SiEPIC_EBeam_fixedcells()
+
+</text>
+</klayout-macro>
